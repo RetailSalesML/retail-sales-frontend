@@ -24,13 +24,13 @@ const RetailSalesML = () => {
       const response = await fetch(`${API_URL}/health`);
       if (response.ok) {
         setApiStatus('connected');
-        addLog('✓ Σύνδεση με API επιτυχής');
+        addLog('✓ API connection successful');
       } else {
         setApiStatus('error');
       }
     } catch (error) {
       setApiStatus('error');
-      addLog('✗ Δεν μπορώ να συνδεθώ στο API - Χρήση local mode');
+      addLog("✗ Can't connect to API - using local mode");
     }
   };
 
@@ -42,7 +42,7 @@ const RetailSalesML = () => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      addLog(`Φορτώθηκε αρχείο: ${uploadedFile.name}`);
+      addLog(`File loaded: ${uploadedFile.name}`);
       
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -58,27 +58,27 @@ const RetailSalesML = () => {
         }).filter(row => row.date && !isNaN(row.sales));
         
         setData(parsedData);
-        addLog(`Φορτώθηκαν ${parsedData.length} εγγραφές`);
+        addLog(`Loaded ${parsedData.length} records`);
       };
       reader.readAsText(uploadedFile);
     }
   };
 
   const generateSampleData = async () => {
-    addLog('Λήψη δείγματος δεδομένων από API...');
+    addLog('Fetching sample data from API...');
     
     try {
       const response = await fetch(`${API_URL}/sample`);
       if (response.ok) {
         const result = await response.json();
         setData(result.data);
-        addLog(`✓ Δημιουργήθηκαν ${result.data.length} εγγραφές`);
+        addLog(`✓ Created ${result.data.length} records`);
       } else {
         throw new Error('API error');
       }
     } catch (error) {
       // Fallback to local generation
-      addLog('Δημιουργία τοπικών δεδομένων...');
+      addLog('Generating local sample data...');
       const sampleData = [];
       const startDate = new Date('2023-01-01');
       
@@ -103,23 +103,23 @@ const RetailSalesML = () => {
       }
       
       setData(sampleData);
-      addLog(`Δημιουργήθηκαν ${sampleData.length} εγγραφές`);
+      addLog(`Created ${sampleData.length} records`);
     }
   };
 
   const trainModel = async () => {
     if (!data || data.length === 0) {
-      addLog('Σφάλμα: Δεν υπάρχουν δεδομένα');
+      addLog('Error: No data available');
       return;
     }
 
     if (data.length < 100) {
-      addLog('Σφάλμα: Χρειάζονται τουλάχιστον 100 εγγραφές');
+      addLog('Error: At least 100 records are required');
       return;
     }
 
     setTraining(true);
-    addLog('Έναρξη εκπαίδευσης μοντέλου ML...');
+    addLog('Starting ML model training...');
 
     try {
       // Try FastAPI backend first
@@ -140,21 +140,21 @@ const RetailSalesML = () => {
       setResults(analysisResults);
       setPredictions(analysisResults.test_predictions);
       
-      addLog(`✓ Εκπαίδευση ολοκληρώθηκε`);
-      addLog(`✓ Καλύτερο μοντέλο: ${analysisResults.best_model}`);
+      addLog(`✓ Training completed`);
+      addLog(`✓ Best model: ${analysisResults.best_model}`);
       const bestModel = analysisResults.models.find(m => m.name === analysisResults.best_model);
       addLog(`✓ Accuracy: ${((1 - bestModel.mape / 100) * 100).toFixed(2)}%`);
       
     } catch (error) {
       console.error('Error:', error);
       addLog(`API Error: ${error.message}`);
-      addLog('Χρήση τοπικής προσομοίωσης...');
+      addLog('Using local simulation...');
       
       // Fallback to local simulation
       const fallbackResults = generateFallbackResults();
       setResults(fallbackResults);
       setPredictions(fallbackResults.test_predictions);
-      addLog('✓ Τοπική ανάλυση ολοκληρώθηκε');
+      addLog('✓ Local analysis completed');
     } finally {
       setTraining(false);
     }
@@ -162,12 +162,12 @@ const RetailSalesML = () => {
 
   const trainModelWithFile = async () => {
     if (!file) {
-      addLog('Σφάλμα: Δεν έχει επιλεγεί αρχείο');
+      addLog('Error: No file selected');
       return;
     }
 
     setTraining(true);
-    addLog('Ανέβασμα αρχείου και εκπαίδευση...');
+    addLog('Uploading file and training...');
 
     try {
       const formData = new FormData();
@@ -187,13 +187,13 @@ const RetailSalesML = () => {
       setResults(analysisResults);
       setPredictions(analysisResults.test_predictions);
       
-      addLog(`✓ Εκπαίδευση ολοκληρώθηκε`);
-      addLog(`✓ Καλύτερο μοντέλο: ${analysisResults.best_model}`);
+      addLog(`✓ Training completed`);
+      addLog(`✓ Best model: ${analysisResults.best_model}`);
       
     } catch (error) {
       console.error('Error:', error);
       addLog(`Upload Error: ${error.message}`);
-      addLog('Δοκιμάστε την τοπική μέθοδο');
+      addLog('Try the local method');
     } finally {
       setTraining(false);
     }
@@ -255,24 +255,24 @@ const RetailSalesML = () => {
     a.href = url;
     a.download = 'predictions.csv';
     a.click();
-    addLog('Λήψη προβλέψεων ως CSV');
+    addLog('Downloaded predictions as CSV');
   };
 
   const bestModel = results?.models.find(m => m.name === results.best_model);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900">
       {/* Header */}
-      <div className="bg-black bg-opacity-30 backdrop-blur-sm border-b border-purple-500/30">
+      <div className="bg-black bg-opacity-30 backdrop-blur-sm border-b border-emerald-500/30">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-3 rounded-lg">
                 <TrendingUp size={32} className="text-white" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Retail Sales AI</h1>
-                <p className="text-purple-300">FastAPI + Machine Learning</p>
+                <p className="text-emerald-300">FastAPI + Machine Learning</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -291,7 +291,7 @@ const RetailSalesML = () => {
               <button
                 onClick={downloadCSV}
                 disabled={!predictions}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 <Download size={18} />
                 Export
@@ -305,11 +305,11 @@ const RetailSalesML = () => {
         {/* Upload Section */}
         {!data && (
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-purple-500/30">
+            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-emerald-500/30">
               <div className="text-center">
-                <Upload className="mx-auto text-purple-400 mb-4" size={48} />
-                <h2 className="text-2xl font-bold text-white mb-3">Ανέβασε Δεδομένα</h2>
-                <p className="text-purple-200 mb-6">CSV με στήλες: date, sales</p>
+                <Upload className="mx-auto text-emerald-400 mb-4" size={48} />
+                <h2 className="text-2xl font-bold text-white mb-3">Upload Data</h2>
+                <p className="text-emerald-200 mb-6">CSV with columns: date, sales</p>
                 <label className="cursor-pointer">
                   <input
                     type="file"
@@ -317,8 +317,8 @@ const RetailSalesML = () => {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <div className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition inline-block">
-                    Επιλογή Αρχείου
+                  <div className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition inline-block">
+                    Choose File
                   </div>
                 </label>
                 {file && (
@@ -327,16 +327,16 @@ const RetailSalesML = () => {
               </div>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-purple-500/30">
+            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-emerald-500/30">
               <div className="text-center">
-                <BarChart3 className="mx-auto text-pink-400 mb-4" size={48} />
+                <BarChart3 className="mx-auto text-green-400 mb-4" size={48} />
                 <h2 className="text-2xl font-bold text-white mb-3">Demo Data</h2>
-                <p className="text-purple-200 mb-6">365 ημέρες συνθετικών δεδομένων</p>
+                <p className="text-emerald-200 mb-6">365 days of synthetic data</p>
                 <button
                   onClick={generateSampleData}
-                  className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition"
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
                 >
-                  Δημιουργία Sample
+                  Generate Sample
                 </button>
               </div>
             </div>
@@ -345,12 +345,12 @@ const RetailSalesML = () => {
 
         {/* Train Model */}
         {data && !results && (
-          <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-purple-500/30 mb-8">
+          <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-emerald-500/30 mb-8">
             <div className="text-center">
               <div className="flex items-center justify-center gap-4 mb-6">
                 <div className="bg-green-500 w-3 h-3 rounded-full animate-pulse"></div>
                 <p className="text-xl text-white">
-                  Φορτώθηκαν <span className="font-bold text-purple-300">{data.length}</span> εγγραφές
+                  Loaded <span className="font-bold text-emerald-300">{data.length}</span> records
                 </p>
               </div>
               
@@ -378,7 +378,7 @@ const RetailSalesML = () => {
                 <button
                   onClick={trainModel}
                   disabled={training}
-                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 transition shadow-lg"
+                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white text-lg font-bold rounded-xl hover:from-emerald-700 hover:to-green-700 disabled:opacity-50 transition shadow-lg"
                 >
                   {training ? (
                     <>
@@ -396,7 +396,7 @@ const RetailSalesML = () => {
               
               {apiStatus === 'error' && (
                 <p className="mt-4 text-yellow-300 text-sm">
-                  ⚠️ API offline - Θα χρησιμοποιηθεί local mode
+                  ⚠️ API offline - local mode will be used
                 </p>
               )}
             </div>
@@ -414,12 +414,12 @@ const RetailSalesML = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`px-6 py-3 rounded-lg font-semibold transition whitespace-nowrap ${
                     activeTab === tab
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white bg-opacity-10 text-purple-200 hover:bg-opacity-20'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white bg-opacity-10 text-emerald-200 hover:bg-opacity-20'
                   }`}
                 >
-                  {tab === 'overview' && 'Επισκόπηση'}
-                  {tab === 'predictions' && 'Προβλέψεις'}
+                  {tab === 'overview' && 'Overview'}
+                  {tab === 'predictions' && 'Predictions'}
                   {tab === 'features' && 'Features'}
                   {tab === 'logs' && 'Logs'}
                 </button>
@@ -446,7 +446,7 @@ const RetailSalesML = () => {
                         </div>
                         <p className="text-3xl font-bold">${bestModel.mae.toFixed(0)}</p>
                       </div>
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+                      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl p-6 text-white">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-sm opacity-90">R² Score</p>
                           <BarChart3 size={20} />
@@ -464,32 +464,32 @@ const RetailSalesML = () => {
                   )}
                 </div>
 
-                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30 mb-6">
-                  <h3 className="text-xl font-bold text-white mb-4">Σύγκριση Μοντέλων</h3>
+                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-emerald-500/30 mb-6">
+                  <h3 className="text-xl font-bold text-white mb-4">Model Comparison</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="border-b border-purple-500/30">
-                          <th className="pb-3 text-purple-300 font-semibold">Model</th>
-                          <th className="pb-3 text-purple-300 font-semibold">MAE</th>
-                          <th className="pb-3 text-purple-300 font-semibold">RMSE</th>
-                          <th className="pb-3 text-purple-300 font-semibold">R²</th>
-                          <th className="pb-3 text-purple-300 font-semibold">MAPE</th>
+                        <tr className="border-b border-emerald-500/30">
+                          <th className="pb-3 text-emerald-300 font-semibold">Model</th>
+                          <th className="pb-3 text-emerald-300 font-semibold">MAE</th>
+                          <th className="pb-3 text-emerald-300 font-semibold">RMSE</th>
+                          <th className="pb-3 text-emerald-300 font-semibold">R²</th>
+                          <th className="pb-3 text-emerald-300 font-semibold">MAPE</th>
                         </tr>
                       </thead>
                       <tbody>
                         {results.models.map((model, i) => (
-                          <tr key={i} className={`border-b border-purple-500/10 ${model.name === results.best_model ? 'bg-purple-500/20' : ''}`}>
+                          <tr key={i} className={`border-b border-emerald-500/10 ${model.name === results.best_model ? 'bg-emerald-500/20' : ''}`}>
                             <td className="py-3 text-white font-medium">
                               {model.name}
                               {model.name === results.best_model && (
                                 <span className="ml-2 text-xs bg-green-500 px-2 py-1 rounded">BEST</span>
                               )}
                             </td>
-                            <td className="py-3 text-purple-200">${model.mae.toFixed(2)}</td>
-                            <td className="py-3 text-purple-200">${model.rmse.toFixed(2)}</td>
-                            <td className="py-3 text-purple-200">{model.r2.toFixed(4)}</td>
-                            <td className="py-3 text-purple-200">{model.mape.toFixed(2)}%</td>
+                            <td className="py-3 text-emerald-200">${model.mae.toFixed(2)}</td>
+                            <td className="py-3 text-emerald-200">${model.rmse.toFixed(2)}</td>
+                            <td className="py-3 text-emerald-200">{model.r2.toFixed(4)}</td>
+                            <td className="py-3 text-emerald-200">{model.mape.toFixed(2)}%</td>
                           </tr>
                         ))}
                       </tbody>
@@ -502,46 +502,46 @@ const RetailSalesML = () => {
             {/* Predictions Tab */}
             {activeTab === 'predictions' && predictions && (
               <>
-                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30 mb-6">
+                <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-emerald-500/30 mb-6">
                   <h3 className="text-xl font-bold text-white mb-4">Test Predictions vs Actual</h3>
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={predictions}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
                       <XAxis 
                         dataKey="date" 
-                        stroke="#a78bfa"
+                        stroke="#6ee7b7"
                         tick={{ fontSize: 12 }}
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('el-GR', { month: 'short', day: 'numeric' })}
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       />
-                      <YAxis stroke="#a78bfa" />
+                      <YAxis stroke="#6ee7b7" />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e1b4b', border: '1px solid #7c3aed', borderRadius: '8px' }}
-                        labelStyle={{ color: '#a78bfa' }}
+                        contentStyle={{ backgroundColor: '#052e16', border: '1px solid #10b981', borderRadius: '8px' }}
+                        labelStyle={{ color: '#6ee7b7' }}
                       />
                       <Legend />
                       <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={2} name="Actual" />
-                      <Line type="monotone" dataKey="predicted" stroke="#ec4899" strokeWidth={2} strokeDasharray="5 5" name="Predicted" />
+                      <Line type="monotone" dataKey="predicted" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 5" name="Predicted" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
 
                 {results.future_predictions && (
-                  <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
+                  <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-emerald-500/30">
                     <h3 className="text-xl font-bold text-white mb-4">Future Predictions (30 days)</h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={results.future_predictions}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
                         <XAxis 
                           dataKey="date" 
-                          stroke="#a78bfa"
+                          stroke="#6ee7b7"
                           tick={{ fontSize: 12 }}
-                          tickFormatter={(value) => new Date(value).toLocaleDateString('el-GR', { month: 'short', day: 'numeric' })}
+                          tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         />
-                        <YAxis stroke="#a78bfa" />
+                        <YAxis stroke="#6ee7b7" />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: '#1e1b4b', border: '1px solid #7c3aed', borderRadius: '8px' }}
+                          contentStyle={{ backgroundColor: '#052e16', border: '1px solid #10b981', borderRadius: '8px' }}
                         />
-                        <Line type="monotone" dataKey="predicted" stroke="#f59e0b" strokeWidth={3} name="Predicted" />
+                        <Line type="monotone" dataKey="predicted" stroke="#34d399" strokeWidth={3} name="Predicted" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -551,17 +551,17 @@ const RetailSalesML = () => {
 
             {/* Features Tab */}
             {activeTab === 'features' && results.feature_importance && (
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-emerald-500/30">
                 <h3 className="text-xl font-bold text-white mb-4">Feature Importance</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={results.feature_importance} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                    <XAxis type="number" stroke="#a78bfa" />
-                    <YAxis type="category" dataKey="feature" stroke="#a78bfa" width={150} />
+                    <XAxis type="number" stroke="#6ee7b7" />
+                    <YAxis type="category" dataKey="feature" stroke="#6ee7b7" width={150} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e1b4b', border: '1px solid #7c3aed', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#052e16', border: '1px solid #10b981', borderRadius: '8px' }}
                     />
-                    <Bar dataKey="importance" fill="#8b5cf6" />
+                    <Bar dataKey="importance" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -569,15 +569,15 @@ const RetailSalesML = () => {
 
             {/* Logs Tab */}
             {activeTab === 'logs' && (
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/30">
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-emerald-500/30">
                 <div className="flex items-center gap-2 mb-4">
-                  <FileText className="text-purple-400" size={24} />
+                  <FileText className="text-emerald-400" size={24} />
                   <h3 className="text-xl font-bold text-white">System Logs</h3>
                 </div>
                 <div className="bg-black bg-opacity-50 rounded-lg p-4 max-h-96 overflow-y-auto font-mono text-sm">
                   {logs.map((log, i) => (
                     <div key={i} className="text-green-400 mb-1">
-                      <span className="text-purple-400">[{log.time}]</span> {log.message}
+                      <span className="text-emerald-400">[{log.time}]</span> {log.message}
                     </div>
                   ))}
                 </div>
@@ -595,7 +595,7 @@ const RetailSalesML = () => {
                 }}
                 className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
               >
-                Νέα Ανάλυση
+                New Analysis
               </button>
             </div>
           </>
